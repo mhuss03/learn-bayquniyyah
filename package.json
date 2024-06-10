@@ -2,7 +2,7 @@
   "name": "learn-bayquniyyah",
   "private": true,
   "version": "0.0.0",
-  "homepage": "https://github.com/mhuss03/learn-bayquniyyah",
+  "homepage": "https://github.io/mhuss03/learn-bayquniyyah",
   "type": "module",
   "scripts": {
     "dev": "vite",
