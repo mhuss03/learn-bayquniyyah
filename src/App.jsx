@@ -1,11 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 function App() {
   const [start, setStart] = useState("1");
   const [end, setEnd] = useState("34");
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playCount, setPlayCount] = useState(0);
 
   const audioRef = useRef(null);
+  const intervalRef = useRef(null);
 
   const timeStamp = {
     1: 0,
@@ -44,24 +46,97 @@ function App() {
     34: 221,
   };
 
-  const handlePlayFrom = (seconds) => {
-    if (start > end) {
-      return alert("Enter a Valid line number");
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isPlaying) {
+      handlePlayPause();
+    }
+  }, [start, end]);
+
+  // const handlePlayFrom = (seconds) => {
+  //   if (start >= end) {
+  //     return alert("Enter a Valid line number");
+  //   }
+
+  //   if (isPlaying) {
+  //     audioRef.current.pause();
+  //     setIsPlaying(false);
+  //     setPlayCount(0);
+  //   } else {
+  //     audioRef.current.currentTime = timeStamp[seconds];
+  //     audioRef.current.play();
+  //     setIsPlaying(true);
+  //     setPlayCount(1);
+
+  //     const id = setInterval(() => {
+  //       if (audioRef.current.currentTime >= timeStamp[end]) {
+  //         if (playCount >= 5) {
+  //           // Stop after playing 5 times
+  //           clearInterval(id);
+  //           audioRef.current.pause();
+  //           setIsPlaying(false);
+  //           setPlayCount(0); // Reset the play count
+  //         } else {
+  //           // Replay the segment
+  //           audioRef.current.currentTime = timeStamp[start];
+  //           audioRef.current.play();
+  //           setPlayCount((prevCount) => prevCount + 1);
+  //         }
+  //       }
+  //     }, 100); // Check every 100ms
+
+  //     setIntervalId(id);
+
+  //     // setTimeout(() => {
+  //     //   setIsPlaying(false);
+  //     //   audioRef.current.pause();
+  //     // }, (timeStamp[end] - timeStamp[start]) * 1000);
+  //   }
+  // };
+
+  const handlePlayPause = () => {
+    const startInt = parseInt(start, 10);
+    const endInt = parseInt(end, 10);
+
+    if (startInt >= endInt) {
+      return alert("Enter a valid line number");
     }
 
-    setIsPlaying(!isPlaying);
-
-    if (isPlaying === true) {
+    if (isPlaying) {
       audioRef.current.pause();
-    } else if (audioRef.current) {
-      audioRef.current.currentTime = timeStamp[seconds];
+      setIsPlaying(false);
+      setPlayCount(0);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    } else {
+      audioRef.current.currentTime = timeStamp[startInt];
       audioRef.current.play();
+      setIsPlaying(true);
+      setPlayCount(1);
 
-      setTimeout(() => {
-        audioRef.current.pause();
-        audioRef.current.currentTime = timeStamp[seconds];
-        audioRef.current.play();
-      }, (timeStamp[end] - timeStamp[start]) * 1000);
+      intervalRef.current = setInterval(() => {
+        if (audioRef.current.currentTime >= timeStamp[endInt]) {
+          if (playCount >= 5) {
+            clearInterval(intervalRef.current);
+            audioRef.current.pause();
+            setIsPlaying(false);
+            setPlayCount(0);
+          } else {
+            audioRef.current.pause();
+            audioRef.current.currentTime = timeStamp[startInt];
+            audioRef.current.play();
+            setPlayCount((prevCount) => prevCount + 1);
+          }
+        }
+      }, 100); // Check every 100ms
     }
   };
 
@@ -78,7 +153,14 @@ function App() {
               min="1"
               max="34"
               value={start}
-              onChange={(e) => setStart(e.target.value)}
+              onChange={(e) => {
+                setStart(e.target.value);
+                setIsPlaying(false);
+                setPlayCount(0);
+                if (intervalRef.current) {
+                  clearInterval(intervalRef.current);
+                }
+              }}
             />
             <h3 className="text-center">Upto</h3>
           </div>
@@ -90,15 +172,22 @@ function App() {
               min="1"
               max="34"
               value={end}
-              onChange={(e) => setEnd(e.target.value)}
+              onChange={(e) => {
+                setEnd(e.target.value);
+                setIsPlaying(false);
+                setPlayCount(0);
+                if (intervalRef.current) {
+                  clearInterval(intervalRef.current);
+                }
+              }}
             />
             <h3 className="text-center">From</h3>
           </div>
           <button
-            onClick={() => handlePlayFrom(start)}
+            onClick={() => handlePlayPause(start)}
             className="text-blue-700 hover:text-white border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800"
           >
-            Play
+            {isPlaying ? "Pause" : "Play"}
           </button>
         </div>
       </div>
