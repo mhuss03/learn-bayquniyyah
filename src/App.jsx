@@ -5,6 +5,7 @@ function App() {
   const [end, setEnd] = useState("34");
   const [isPlaying, setIsPlaying] = useState(false);
   const [playCount, setPlayCount] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
   const audioRef = useRef(null);
   const intervalRef = useRef(null);
@@ -60,47 +61,6 @@ function App() {
     }
   }, [start, end]);
 
-  // const handlePlayFrom = (seconds) => {
-  //   if (start >= end) {
-  //     return alert("Enter a Valid line number");
-  //   }
-
-  //   if (isPlaying) {
-  //     audioRef.current.pause();
-  //     setIsPlaying(false);
-  //     setPlayCount(0);
-  //   } else {
-  //     audioRef.current.currentTime = timeStamp[seconds];
-  //     audioRef.current.play();
-  //     setIsPlaying(true);
-  //     setPlayCount(1);
-
-  //     const id = setInterval(() => {
-  //       if (audioRef.current.currentTime >= timeStamp[end]) {
-  //         if (playCount >= 5) {
-  //           // Stop after playing 5 times
-  //           clearInterval(id);
-  //           audioRef.current.pause();
-  //           setIsPlaying(false);
-  //           setPlayCount(0); // Reset the play count
-  //         } else {
-  //           // Replay the segment
-  //           audioRef.current.currentTime = timeStamp[start];
-  //           audioRef.current.play();
-  //           setPlayCount((prevCount) => prevCount + 1);
-  //         }
-  //       }
-  //     }, 100); // Check every 100ms
-
-  //     setIntervalId(id);
-
-  //     // setTimeout(() => {
-  //     //   setIsPlaying(false);
-  //     //   audioRef.current.pause();
-  //     // }, (timeStamp[end] - timeStamp[start]) * 1000);
-  //   }
-  // };
-
   const handlePlayPause = () => {
     const startInt = parseInt(start, 10);
     const endInt = parseInt(end, 10);
@@ -118,6 +78,7 @@ function App() {
       }
     } else {
       audioRef.current.currentTime = timeStamp[startInt];
+      audioRef.current.playbackRate = playbackSpeed;
       audioRef.current.play();
       setIsPlaying(true);
       setPlayCount(1);
@@ -190,7 +151,28 @@ function App() {
             {isPlaying ? "Pause" : "Play"}
           </button>
         </div>
+        <div className="flex space-x-4 mb-4">
+          <label htmlFor="playbackSpeed" className="text-gray-700">
+            Playback Speed:
+          </label>
+          <select
+            id="playbackSpeed"
+            className="border-2 border-gray-400 rounded-lg p-2 focus:outline-none focus:border-blue-500 shadow-sm"
+            value={playbackSpeed}
+            onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
+          >
+            <option value="0.5">0.5x</option>
+            <option value="0.75">0.75x</option>
+            <option value="0.8">0.8x</option>
+            <option value="0.9">0.9x</option>
+            <option value="1">1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+          </select>
+        </div>
       </div>
+
       <img src="assets/Part-1.jpg" alt="" />
       <img src="assets/Part-2.jpg" alt="" />
     </>
