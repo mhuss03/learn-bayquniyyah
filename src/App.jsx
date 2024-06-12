@@ -107,12 +107,9 @@ function App() {
         <audio ref={audioRef} src="assets/audio-files/full-audio.mp3" />
         <div className="flex space-x-4 mb-4">
           <div>
-            <input
-              type="number"
+            <select
               className="border-2 border-gray-400 rounded-lg p-2 focus:outline-none focus:border-blue-500 shadow-sm"
               id="part-start"
-              min="1"
-              max="34"
               value={start}
               onChange={(e) => {
                 setStart(e.target.value);
@@ -122,16 +119,19 @@ function App() {
                   clearInterval(intervalRef.current);
                 }
               }}
-            />
+            >
+              {Array.from({ length: 34 }, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
             <h3 className="text-center">Upto</h3>
           </div>
           <div>
-            <input
-              type="number"
+            <select
               className="border-2 border-gray-400 rounded-lg p-2 focus:outline-none focus:border-blue-500 shadow-sm"
               id="part-end"
-              min="1"
-              max="34"
               value={end}
               onChange={(e) => {
                 setEnd(e.target.value);
@@ -141,7 +141,13 @@ function App() {
                   clearInterval(intervalRef.current);
                 }
               }}
-            />
+            >
+              {Array.from({ length: 34 }, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
             <h3 className="text-center">From</h3>
           </div>
           <button
