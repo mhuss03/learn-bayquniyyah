@@ -166,7 +166,7 @@ function App() {
             {isPlaying ? "Pause" : "Play"}
           </button>
         </div>
-        <div className="flex w-1/3 gap-6">
+        <div className="flex w-full gap-6 flex-wrap">
           <label
             htmlFor="playbackSpeed"
             className="block mb-2 text-sm font-medium text-gray-900 my-auto"
