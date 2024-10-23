@@ -5,6 +5,7 @@ export default {
     extend: {
       fontFamily: {
         scheherazade: ['"Scheherazade New"', "serif"],
+        kitab: ["kitab", "serif"],
       },
     },
   },
