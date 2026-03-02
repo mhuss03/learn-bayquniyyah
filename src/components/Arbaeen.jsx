@@ -1,61 +1,109 @@
 import React, { useState, useRef, useEffect } from "react";
+import {
+  PlayButton,
+  Playback,
+  Recitor,
+  Matn,
+  HadithSelector,
+  Loops,
+  Volume,
+} from "./Arbaeen/index";
+import { CiDark, CiLight } from "react-icons/ci";
 
 export default function Arbaeen() {
-  const [start, setStart] = useState("1");
-  const [end, setEnd] = useState("40");
+  const [start, setStart] = useState(() => {
+    return localStorage.getItem("start") || "1";
+  });
+
+  const [end, setEnd] = useState(() => {
+    return localStorage.getItem("end") || "40";
+  });
+  const [currentHadith, setCurrentHadith] = useState(start - 1);
+
+  useEffect(() => {
+    localStorage.setItem("start", start);
+  }, [start]);
+
+  useEffect(() => {
+    localStorage.setItem("end", end);
+  }, [end]);
+
   const [isPlaying, setIsPlaying] = useState(false);
+
   const [playCount, setPlayCount] = useState(0);
+  const [maxCount, setMaxCount] = useState(1);
+
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [volume, setVolume] = useState(50);
+
   const [recitor, setRecitor] = useState(1);
 
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return (
+      localStorage.theme === "dark" ||
+      (!("theme" in localStorage) &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches)
+    );
+  });
   const audioRef = useRef(null);
   const intervalRef = useRef(null);
 
   const timeStamp = {
-    1: [0, 34],
-    2: [50, 93],
-    3: [162, 226],
-    4: [190, 260],
-    5: [256, 344],
-    6: [280, 372],
-    7: [331, 432],
-    8: [353, 458],
-    9: [381, 496],
-    10: [408, 528],
-    11: [408, 588],
-    12: [408, 620],
-    13: [408, 640],
-    14: [408, 664],
-    15: [408, 690],
-    16: [408, 720],
-    17: [408, 740],
-    18: [408, 768],
-    19: [408, 802],
-    20: [408, 886],
-    21: [408, 910],
-    22: [408, 934],
-    23: [408, 978],
-    24: [408, 1024],
-    25: [408, 1164],
-    26: [408, 1242],
-    27: [408, 1286],
-    28: [408, 1346],
-    29: [408, 1410],
-    30: [408, 1518],
-    31: [408, 1556],
-    32: [408, 1596],
-    33: [408, 1636],
-    34: [408, 1668],
-    35: [408, 1696],
-    36: [408, 1746],
-    37: [408, 1821],
-    38: [408, 1881],
-    39: [408, 1961],
-    40: [1668, 1995],
-    41: [1668, 2023],
+    1: [34, 17],
+    2: [93, 50],
+    3: [226, 162],
+    4: [260, 190],
+    5: [344, 256],
+    6: [372, 280],
+    7: [432, 331],
+    8: [458, 353],
+    9: [496, 381],
+    10: [528, 408],
+    11: [588, 408],
+    12: [620, 408],
+    13: [640, 408],
+    14: [664, 408],
+    15: [690, 408],
+    16: [720, 408],
+    17: [740, 408],
+    18: [768, 408],
+    19: [802, 408],
+    20: [886, 408],
+    21: [910, 408],
+    22: [934, 408],
+    23: [978, 408],
+    24: [1024, 408],
+    25: [1164, 408],
+    26: [1242, 408],
+    27: [1286, 408],
+    28: [1346, 408],
+    29: [1410, 408],
+    30: [1518, 408],
+    31: [1556, 408],
+    32: [1596, 408],
+    33: [1636, 408],
+    34: [1668, 408],
+    35: [1696, 408],
+    36: [1746, 408],
+    37: [1821, 408],
+    38: [1881, 408],
+    39: [1961, 408],
+    40: [1995, 1668],
+    41: [2023, 1668],
   };
 
   useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/learn-bayquniyyah/service-worker.js") // Adjust path to reflect the base URL
+        .then(() => {
+          console.log("Service Worker Registered.");
+        })
+        .catch((error) => {
+          console.error("Service Worker Registration Failed:", error);
+        });
+    }
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -69,6 +117,20 @@ export default function Arbaeen() {
     }
   }, [start, end]);
 
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume / 100; // Set initial volume when component mounts
+    }
+  }, [audioRef, volume]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackSpeed;
+    }
+  }, [audioRef, playbackSpeed]);
+
+  const playCountRef = useRef(0);
+
   const handlePlayPause = () => {
     const startInt = parseInt(start, 10);
     const endInt = parseInt(end, 10);
@@ -81,151 +143,131 @@ export default function Arbaeen() {
       audioRef.current.pause();
       setIsPlaying(false);
       setPlayCount(0);
+      playCountRef.current = 0; // Reset the ref
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     } else {
       audioRef.current.currentTime = timeStamp[startInt][recitor - 1];
-      audioRef.current.playbackRate = playbackSpeed;
       audioRef.current.play();
       setIsPlaying(true);
       setPlayCount(1);
+      playCountRef.current = 1; // Initialize the ref
 
       intervalRef.current = setInterval(() => {
-        if (audioRef.current.currentTime >= timeStamp[endInt][recitor - 1]) {
-          if (playCount >= 5) {
+        const currentTime = audioRef.current.currentTime;
+
+        // Check if current time is within a Hadith range
+        for (let i = startInt; i <= endInt; i++) {
+          // Check if the current time is within the range for Hadith `i`
+          const startTimestamp = timeStamp[i][recitor - 1];
+          const nextHadithTimestamp = timeStamp[i + 1]
+            ? timeStamp[i + 1][recitor - 1]
+            : Infinity;
+
+          if (
+            currentTime >= startTimestamp - 0.1 &&
+            currentTime < nextHadithTimestamp - 0.1
+          ) {
+            setCurrentHadith(i - 1); // -1 because the hadith index starts from 0
+            break;
+          }
+        }
+
+        // Handle playback stopping after end time
+        if (currentTime >= timeStamp[Number(endInt)][recitor - 1] - 0.1) {
+          if (playCountRef.current >= maxCount) {
+            console.log("Clearing interval and stopping playback.");
             clearInterval(intervalRef.current);
             audioRef.current.pause();
             setIsPlaying(false);
             setPlayCount(0);
+            playCountRef.current = 0;
           } else {
+            console.log("Looping playback.");
             audioRef.current.pause();
             audioRef.current.currentTime = timeStamp[startInt][recitor - 1];
             audioRef.current.play();
-            setPlayCount((prevCount) => prevCount + 1);
+            playCountRef.current += 1;
+            setPlayCount(playCountRef.current);
           }
         }
-      }, 100); // Check every 100ms
+      }, 250);
     }
   };
 
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDarkMode]);
+
+  const handleDarkMode = () => {
+    setIsDarkMode((prevMode) => {
+      const newMode = !prevMode;
+      localStorage.theme = newMode ? "dark" : "light";
+      if (newMode) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      return newMode;
+    });
+  };
+
   return (
-    <>
-      <div className="flex flex-col items-center justify-center p-4 gap-6">
-        <audio
-          ref={audioRef}
-          src={
-            recitor === 1
-              ? "assets/audio-files/Arbaeen1.mp3"
-              : "assets/audio-files/Arbaeen2.mp3"
-          }
-        />
-        <div className="flex justify-center gap-4 w-full">
-          <div>
-            <select
-              className="border-2 border-gray-400 rounded-lg focus:outline-none focus:border-blue-500 shadow-sm"
-              id="part-start"
-              value={start}
-              onChange={(e) => {
-                setStart(e.target.value);
-                setIsPlaying(false);
-                setPlayCount(0);
-                if (intervalRef.current) {
-                  clearInterval(intervalRef.current);
-                }
-              }}
-            >
-              {Array.from({ length: 41 }, (_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {i + 1}
-                </option>
-              ))}
-            </select>
-            <h3 className="text-center">From</h3>
-          </div>
-          <div>
-            <select
-              className="border-2 border-gray-400 rounded-lg focus:outline-none focus:border-blue-500 shadow-sm"
-              id="part-end"
-              value={end}
-              onChange={(e) => {
-                setEnd(e.target.value);
-                setIsPlaying(false);
-                setPlayCount(0);
-                if (intervalRef.current) {
-                  clearInterval(intervalRef.current);
-                }
-              }}
-            >
-              {Array.from({ length: 41 }, (_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {i + 1}
-                </option>
-              ))}
-            </select>
-            <h3 className="text-center">to</h3>
-          </div>
-          <div>
-            <button
-              onClick={() => handlePlayPause(start)}
-              className="text-blue-700 hover:text-white border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm text-center w-16 h-8"
-            >
-              {isPlaying ? "Pause" : "Play"}
-            </button>
-          </div>
-        </div>
-        <div className="flex w-full gap-4 flex-wrap flex-col">
-          <div className="flex gap-4">
-            <label
-              htmlFor="playbackSpeed"
-              className="block text-sm font-medium text-gray-900"
-            >
-              Playback Speed:
-            </label>
-            <select
-              id="playbackSpeed"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              value={playbackSpeed}
-              onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
-            >
-              <option value="0.5">0.5x</option>
-              <option value="0.75">0.75x</option>
-              <option value="0.8">0.8x</option>
-              <option value="0.9">0.9x</option>
-              <option value="1">1x</option>
-              <option value="1.25">1.25x</option>
-              <option value="1.5">1.5x</option>
-              <option value="2">2x</option>
-            </select>
-          </div>
-          <div className="flex gap-4">
-            <label
-              htmlFor="recitor"
-              className="text-sm font-medium text-gray-900"
-            >
-              Choose Recitor
-            </label>
-            <select
-              name=""
-              id="recitor"
-              value={recitor}
-              onChange={(e) => setRecitor(parseInt(e.target.value))}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="1">Recitor 1</option>
-              <option value="2">Recitor 2</option>
-            </select>
-          </div>
-        </div>
-        <div className="text-right font-kitab leading-10 border-2 p-2">
-          عَنْ أَمِيرِ المُؤْمِنِينَ أَبِي حَفْصٍ عُمَرَ بْنِ الخَطّابِ (رضي
-          الله عنه) قالَ: سَمِعْت رَسُولَ اللَّهِ ﷺ يَقُولُ: «إنَّما الأَعْمالُ
-          بِالنِّيّاتِ، وَإِنَّما لِكُلِّ امْرِئٍ ما نَوَى، فَمَنْ كانَتْ
-          هِجْرَتُهُ إلَى اللَّهِ وَرَسُولِهِ فَهِجْرَتُهُ إلَى اللَّهِ
-          وَرَسُولِهِ، وَمَنْ كانَتْ هِجْرَتُهُ لِدُنْيا يُصِيبُها أَوْ
-          امْرَأَةٍ يَنْكِحُها فَهِجْرَتُهُ إلَى ما هاجَرَ إلَيْهِ».
-        </div>
+    <div className="w-96 border-2 shadow-sm rounded-md mx-auto p-4 mt-4 bg-white md:w-[40rem] lg:w-[64rem] dark:bg-[#1e1e1e] dark:border-[#878787]">
+      <audio
+        ref={audioRef}
+        src={
+          recitor === 1
+            ? "assets/audio-files/Arbaeen2.mp3"
+            : "assets/audio-files/Arbaeen1.mp3"
+        }
+      />
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="font-bold text-xl dark:text-white">
+          Hadith Memorisation
+        </h1>
+        <button onClick={handleDarkMode}>
+          {isDarkMode ? (
+            <CiDark size={25} color={isDarkMode ? "white" : "black"} />
+          ) : (
+            <CiLight size={25} color={isDarkMode ? "white" : "black"} />
+          )}
+        </button>
       </div>
-    </>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Recitor recitor={recitor} setRecitor={setRecitor} />
+        <Loops
+          playCount={playCount}
+          maxCount={maxCount}
+          setMaxCount={setMaxCount}
+          isDarkMode={isDarkMode}
+        />
+        <Playback
+          playbackSpeed={playbackSpeed}
+          setPlaybackSpeed={setPlaybackSpeed}
+        />
+        <Volume volume={volume} setVolume={setVolume} isDarkMode={isDarkMode} />
+        <HadithSelector
+          start={start}
+          setStart={setStart}
+          end={end}
+          setEnd={setEnd}
+          setIsPlaying={setIsPlaying}
+          setPlayCount={setPlayCount}
+          intervalRef={intervalRef}
+        />
+        <PlayButton
+          isPlaying={isPlaying}
+          handlePlayPause={handlePlayPause}
+          start={start}
+        />
+        <Matn currentHadith={currentHadith} />
+      </div>
+    </div>
   );
 }

@@ -1,0 +1,11 @@
+.div-container {
+  @apply inline-flex flex-col gap-2;
+}
+
+.section-title {
+  @apply font-medium dark:text-[#878787];
+}
+
+.options {
+  @apply rounded-md border-2 py-1 px-2 dark:bg-[#878787] dark:border-none dark:text-white;
+}
